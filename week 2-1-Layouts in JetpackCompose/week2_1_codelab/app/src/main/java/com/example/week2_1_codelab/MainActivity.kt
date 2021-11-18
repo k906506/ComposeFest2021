@@ -21,14 +21,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.layout.AlignmentLine
-import androidx.compose.ui.layout.FirstBaseline
-import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.layout.layout
+import androidx.compose.ui.layout.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.ConstraintSet
+import androidx.constraintlayout.compose.Dimension
 import coil.compose.rememberImagePainter
 import com.example.week2_1_codelab.ui.theme.Week2_1_codelabTheme
 import kotlinx.coroutines.launch
@@ -40,7 +40,7 @@ class MainActivity : ComponentActivity() {
             Week2_1_codelabTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(color = MaterialTheme.colors.background) {
-                    LayoutCodelab()
+                    DecoupledConstraintLayout()
                 }
             }
         }
@@ -85,6 +85,104 @@ val _topics = listOf(
     "컴포즈",
     "짱짱"
 )
+
+@Composable
+fun DecoupledConstraintLayout() {
+    BoxWithConstraints {
+        val constraints = if (maxWidth < maxHeight) {
+            decoupledConstraints(16.dp)
+        } else {
+            decoupledConstraints(32.dp)
+        }
+
+        ConstraintLayout(constraints) {
+            Button(
+                onClick = {},
+                modifier = Modifier.layoutId("button")
+            ) {
+                Text("Button")
+            }
+            Text("Text", Modifier.layoutId("text"))
+        }
+    }
+}
+
+private fun decoupledConstraints(margin : Dp) : ConstraintSet {
+    return ConstraintSet {
+        val button = createRefFor("button")
+        val text = createRefFor("text")
+
+        constrain(button) {
+            top.linkTo(parent.top, margin)
+        }
+
+        constrain(text) {
+            top.linkTo(button.bottom, margin)
+        }
+    }
+}
+
+@Composable
+fun LargeConstraintLayout() {
+    ConstraintLayout {
+        val text = createRef()
+
+        val guideline = createGuidelineFromStart(fraction = 0.5f)
+        Text("매우 매우 매우 매우 매우 매우 매우 매우 매우 매우 매우 매우 매우 매우 매우 긴 텍스트", Modifier.constrainAs(text) {
+            linkTo(start = guideline, end = parent.end)
+            width = Dimension.preferredWrapContent
+        })
+    }
+}
+
+@Preview
+@Composable
+fun LargeConstraintLayoutPreview() {
+    Week2_1_codelabTheme {
+        LargeConstraintLayout()
+    }
+}
+
+@Composable
+fun ConstraintsLayoutContent() {
+    ConstraintLayout() {
+        val (button1, button2, text) = createRefs()
+
+        Button(
+            onClick = {},
+            modifier = Modifier.constrainAs(button1) {
+                top.linkTo(parent.top, margin = 16.dp)
+            }
+        ) {
+            Text("Button1")
+        }
+
+        Text("Text", Modifier.constrainAs(text) {
+            top.linkTo(button1.bottom, margin = 16.dp)
+            centerHorizontallyTo(parent)
+        })
+
+        val barrier = createEndBarrier(button1, text)
+
+        Button(
+            onClick = {},
+            modifier = Modifier.constrainAs(button2) {
+                top.linkTo(parent.top, margin = 16.dp)
+                start.linkTo(barrier)
+            }
+        ) {
+            Text("Button2")
+        }
+    }
+}
+
+@Preview
+@Composable
+fun ConstraintLayoutContentPreview() {
+    Week2_1_codelabTheme {
+        ConstraintsLayoutContent()
+    }
+}
 
 @Composable
 fun Chip(modifier: Modifier = Modifier, text: String) {
@@ -297,11 +395,13 @@ fun LayoutCodelab() {
 
 @Composable
 fun BodyContent(modifier: Modifier = Modifier) {
-    Row(modifier = modifier
-        .background(color = Color.LightGray)
-        .size(200.dp)
-        .padding(16.dp)
-        .horizontalScroll(rememberScrollState())) {
+    Row(
+        modifier = modifier
+            .background(color = Color.LightGray)
+            .size(200.dp)
+            .padding(16.dp)
+            .horizontalScroll(rememberScrollState())
+    ) {
         StaggeredGrid(modifier = modifier) {
             for (topic in _topics) {
                 Chip(modifier = Modifier.padding(8.dp), text = topic)

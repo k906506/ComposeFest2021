@@ -19,8 +19,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.layout.AlignmentLine
+import androidx.compose.ui.layout.FirstBaseline
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberImagePainter
 import com.example.week2_1_codelab.ui.theme.Week2_1_codelabTheme
@@ -33,7 +38,7 @@ class MainActivity : ComponentActivity() {
             Week2_1_codelabTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(color = MaterialTheme.colors.background) {
-                    ScrollingList()
+                    LayoutCodelab()
                 }
             }
         }
@@ -41,25 +46,57 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun ImageListItem(index: Int) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Image(
-            painter = rememberImagePainter(data = "https://developer.android.com/images/brand/Android_Robot.png"),
-            contentDescription = "Android Logo",
-            modifier = Modifier.size(50.dp)
-        )
-        Spacer(Modifier.width(10.dp))
-        Text("Item #$index", style = MaterialTheme.typography.subtitle1)
+fun MyOwnColumn(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    Layout(
+        modifier = modifier,
+        content = content
+    ) { measurables, constraints ->
+        val placeables = measurables.map { measurable ->
+            measurable.measure(constraints)
+        }
+
+        var yPosition = 0
+
+        layout(constraints.maxWidth, constraints.maxHeight) {
+            placeables.forEach { placeable ->
+                placeable.placeRelative(x = 0, y = yPosition)
+                yPosition += placeable.height
+            }
+        }
     }
 }
 
-@Composable
-fun SimpleList() {
-    val scrollState = rememberScrollState()
-    Column(Modifier.verticalScroll(scrollState)) {
-        repeat(100) {
-            Text("Item #$it")
+fun Modifier.firstBaselineToTop(firstBaseLineToTop: Dp) = this.then(
+    layout { measurable, constraints ->
+        val placeable = measurable.measure(constraints)
+
+        check(placeable[FirstBaseline] != AlignmentLine.Unspecified)
+        val firstBaseline = placeable[FirstBaseline]
+
+        val placeableY = firstBaseLineToTop.roundToPx() - firstBaseline
+        val height = placeable.height + placeableY
+        layout(placeable.width, height) {
+            placeable.placeRelative(0, placeableY)
         }
+    }
+)
+
+@Preview
+@Composable
+fun TextWithPaddingToBaselinePreview() {
+    Week2_1_codelabTheme {
+        Text("안녕하세요", Modifier.firstBaselineToTop(32.dp))
+    }
+}
+
+@Preview
+@Composable
+fun TextWithNormalPaddingPreview() {
+    Week2_1_codelabTheme {
+        Text("안녕하세요", Modifier.padding(top = 32.dp))
     }
 }
 
@@ -95,6 +132,29 @@ fun ScrollingList() {
 }
 
 @Composable
+fun ImageListItem(index: Int) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Image(
+            painter = rememberImagePainter(data = "https://developer.android.com/images/brand/Android_Robot.png"),
+            contentDescription = "Android Logo",
+            modifier = Modifier.size(50.dp)
+        )
+        Spacer(Modifier.width(10.dp))
+        Text("Item #$index", style = MaterialTheme.typography.subtitle1)
+    }
+}
+
+@Composable
+fun SimpleList() {
+    val scrollState = rememberScrollState()
+    Column(Modifier.verticalScroll(scrollState)) {
+        repeat(100) {
+            Text("Item #$it")
+        }
+    }
+}
+
+@Composable
 fun LayoutCodelab() {
     Scaffold(
         topBar = {
@@ -115,9 +175,11 @@ fun LayoutCodelab() {
 
 @Composable
 fun BodyContent(modifier: Modifier = Modifier) {
-    Column(modifier = modifier.padding(8.dp)) {
-        Text(text = "Hi there")
-        Text(text = "Thanks for going through the Layouts codelab")
+    MyOwnColumn(modifier.padding(8.dp)) {
+        Text("MyOwnColumn")
+        Text("아이템")
+        Text("수직 방향")
+        Text("직접 구현해봤습니다.")
     }
 }
 

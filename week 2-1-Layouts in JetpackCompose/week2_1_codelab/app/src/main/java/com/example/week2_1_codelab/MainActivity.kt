@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.AlignmentLine
 import androidx.compose.ui.layout.FirstBaseline
 import androidx.compose.ui.layout.Layout
@@ -296,8 +297,12 @@ fun LayoutCodelab() {
 
 @Composable
 fun BodyContent(modifier: Modifier = Modifier) {
-    Row(modifier = modifier.horizontalScroll(rememberScrollState())) {
-        StaggeredGrid(modifier = modifier, rows = 5) {
+    Row(modifier = modifier
+        .background(color = Color.LightGray)
+        .size(200.dp)
+        .padding(16.dp)
+        .horizontalScroll(rememberScrollState())) {
+        StaggeredGrid(modifier = modifier) {
             for (topic in _topics) {
                 Chip(modifier = Modifier.padding(8.dp), text = topic)
             }

@@ -1,10 +1,7 @@
 package com.example.compose.rally
 
-import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.onRoot
-import androidx.compose.ui.test.printToLog
 import androidx.compose.ui.text.toUpperCase
 import com.example.compose.rally.ui.components.RallyTopAppBar
 import org.junit.Rule
@@ -27,9 +24,13 @@ class TopAppBarTest {
         }
 
         composeTestRule
-            .onNodeWithContentDescription(RallyScreen.Accounts.name.toUpperCase())
+            .onNode(
+                hasText(RallyScreen.Accounts.name.toUpperCase()) and
+                        hasParent(
+                            hasContentDescription(RallyScreen.Accounts.name)
+                        ),
+                useUnmergedTree = true
+            )
             .assertExists()
     }
-
-    // TODO: Add tests
 }
